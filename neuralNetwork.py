@@ -2,37 +2,34 @@
 
 # Importing the numpy packages so I have access to arrays, matrices, etc.
 import numpy as np
+# Importing the pandas package so I can read in excel files.
 import pandas as pd
-import math
-from scipy.special import \
-    expit  # Fastest per https://stackoverflow.com/questions/43024745/applying-a-function-along-a-numpy-array
-#from keras.models import Sequential
-#from keras.layers import Dense, Activation
+# Fastest sigmoid function per https://stackoverflow.com/questions/43024745/applying-a-function-along-a-numpy-array
+from scipy.special import expit
 
 
 # Writing out the Neural Network class
 class NeuralNetwork:
     # Constructor function
     def __init__(self, num_inputs, num_hidden, num_outputs):
-        # self.numInputs = num_inputs
-        # self.numHidden = num_hidden
-        # self.numOutputs = num_outputs
+        # Initializing the weights and biases at values within [-0.5,0.5).
         self.weightsIH = np.random.random((num_hidden, num_inputs)) - 0.5
         self.weightsHO = np.random.random((num_outputs, num_hidden)) - 0.5
         self.biasH = np.random.random((num_hidden, 1)) - 0.5
         self.biasO = np.random.random((num_outputs, 1)) - 0.5
 
-        #self.weightsIH = np.zeros(shape=(num_hidden, num_inputs))
-        #self.weightsHO = np.zeros(shape=(num_outputs, num_hidden))
-        #self.biasH = np.zeros(shape=(num_hidden, 1))
-        #self.biasO = np.zeros(shape=(num_outputs, 1))
+        # Initializing the weights and biases at zero.
+        # self.weightsIH = np.zeros(shape=(num_hidden, num_inputs))
+        # self.weightsHO = np.zeros(shape=(num_outputs, num_hidden))
+        # self.biasH = np.zeros(shape=(num_hidden, 1))
+        # self.biasO = np.zeros(shape=(num_outputs, 1))
 
     def train(self, ans_set, inp_set, epochs=5, eta=0.5):
 
         for epoch in range(epochs):
 
             print('Epoch number: ', epoch)
-            sumSqErr = 0
+            sum_sq_err = 0
             iterations = range(inp_set.shape[0])
             for i in iterations:
                 x = inp_set[i, :]
@@ -40,7 +37,7 @@ class NeuralNetwork:
                 y = ans_set[i, :]
                 y = y.reshape(y.shape[0], 1)  # reshape as column vector
                 z_hid, a_hid, z_out, y_hat = self.feedforward(x)
-                sumSqErr = sumSqErr + (y - y_hat) ** 2
+                sum_sq_err = sum_sq_err + (y - y_hat) ** 2
 
                 delta = np.multiply((y - y_hat), NeuralNetwork.sigmoid(z_out, True))  # this is (y-y_hat)*o'(z_out)
                 temp_weights_ho = self.weightsHO + eta * np.matmul(delta, np.transpose(a_hid))
@@ -57,28 +54,27 @@ class NeuralNetwork:
                 self.biasO = temp_bias_o
                 self.biasH = temp_bias_h
 
-            print('Sum Squared Error:', np.asscalar(sumSqErr))
+            print('Sum Squared Error:', np.asscalar(sum_sq_err))
 
-            if sumSqErr < 0.001:
+            if sum_sq_err < 0.001:
                 break
 
-    def validate(self, dataSet):
-        ansSet = dataSet[:, 0]  # first column
-        valSet = dataSet[:, 1:]
+    def validate(self, ans_set, inp_set):
 
-        totalCorrect = 0
-        totalTested = valSet.shape[0]
-        iterations = range(valSet.shape[0])
+        total_correct = 0
+        total_tested = inp_set.shape[0]
+        iterations = range(inp_set.shape[0])
 
         for i in iterations:
-            x = valSet[i, :]
+            x = inp_set[i, :]
             x = x.reshape(x.shape[0], 1)  # Reformat as column vector
-            y = ansSet[i]
+            y = ans_set[i, :]
+            y = y.reshape(y.shape[0], 1)  # Reformat as column vector
             z_hid, a_hid, z_out, y_hat = self.feedforward(x)
             if round(np.asscalar(y_hat)) == y:
-                totalCorrect += 1
+                total_correct += 1
 
-        return totalCorrect / totalTested
+        return total_correct / total_tested
 
     def feedforward(self, x):
         z_hid = np.matmul(self.weightsIH, x) + self.biasH
@@ -110,11 +106,10 @@ eta = 0.5
 nn = NeuralNetwork(2, 4, 1)
 
 # Training the neural network.
-#nn.train(data, 15000, eta)
 nn.train(ans_set, inp_set, 15000, eta)
 
 # Validating the neural network.
-print('Success rate: ', nn.validate(data))
+print('Success rate: ', nn.validate(ans_set, inp_set))
 
 # Let's compare this to the Keras neural network libraries. We'll learn that and also do validation on our own code at the same time.
 
