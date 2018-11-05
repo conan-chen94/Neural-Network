@@ -4,12 +4,18 @@
 import numpy as np
 # Importing the pandas package so I can read in excel files.
 import pandas as pd
-# Fastest sigmoid function per https://stackoverflow.com/questions/43024745/applying-a-function-along-a-numpy-array
+# Fastest sigmoid function - https://stackoverflow.com/questions/43024745/applying-a-function-along-a-numpy-array
 from scipy.special import expit
+# Importing time to time execution - https://pythonhow.com/measure-execution-time-python-code/
+import time
+
+# Starting off the timer
+start = time.time()
 
 
 # Writing out the Neural Network class
 class NeuralNetwork:
+
     # Constructor function
     def __init__(self, num_inputs, num_hidden, num_outputs):
         # Initializing the weights and biases at values within [-0.5,0.5).
@@ -26,20 +32,32 @@ class NeuralNetwork:
 
     def train(self, ans_set, inp_set, epochs=5, eta=0.5):
 
+        # Transposing ans_set (Y) and inp_set (X) so y and x are naturally column vectors while iterating through.
+        ans_set_transpose = np.transpose(ans_set)
+        inp_set_transpose = np.transpose(inp_set)
+
+        # Looping through epochs.
         for epoch in range(epochs):
 
             print('Epoch number: ', epoch)
             sum_sq_err = 0
+
+            # Looping through the training cases.
             iterations = range(inp_set.shape[0])
             for i in iterations:
-                x = inp_set[i, :]
-                x = x.reshape(x.shape[0], 1)  # reshape as column vector
-                y = ans_set[i, :]
-                y = y.reshape(y.shape[0], 1)  # reshape as column vector
+
+                # Gathering x and y.
+                x = inp_set_transpose[:, i:i+1]
+                y = ans_set_transpose[:, i:i+1]
+
+                # Feeding forward and calculating sum squared error.
                 z_hid, a_hid, z_out, y_hat = self.feedforward(x)
                 sum_sq_err = sum_sq_err + (y - y_hat) ** 2
 
+                # Calculating the output node delta.
                 delta = np.multiply((y - y_hat), NeuralNetwork.sigmoid(z_out, True))  # this is (y-y_hat)*o'(z_out)
+
+                # Calculating the new weights and biases.
                 temp_weights_ho = self.weightsHO + eta * np.matmul(delta, np.transpose(a_hid))
                 temp_weights_ih = self.weightsIH + eta * np.matmul(
                     np.multiply(np.matmul(np.transpose(self.weightsHO), delta), NeuralNetwork.sigmoid(z_hid, True)),
@@ -48,7 +66,7 @@ class NeuralNetwork:
                 temp_bias_h = self.biasH + eta * np.multiply(np.matmul(np.transpose(self.weightsHO), delta),
                                                              NeuralNetwork.sigmoid(z_hid, True))
 
-                # Fourth, updating everything.
+                # Updating all the weights.
                 self.weightsHO = temp_weights_ho
                 self.weightsIH = temp_weights_ih
                 self.biasO = temp_bias_o
@@ -56,6 +74,7 @@ class NeuralNetwork:
 
             print('Sum Squared Error:', np.asscalar(sum_sq_err))
 
+            # If the sum squared error falls below our threshold, quit out.
             if sum_sq_err < 0.001:
                 break
 
@@ -65,13 +84,16 @@ class NeuralNetwork:
         total_tested = inp_set.shape[0]
         iterations = range(inp_set.shape[0])
 
+        # Transposing ans_set (Y) and inp_set (X) so y and x are naturally column vectors while iterating through.
+        ans_set_transpose = np.transpose(ans_set)
+        inp_set_transpose = np.transpose(inp_set)
+
         for i in iterations:
-            x = inp_set[i, :]
-            x = x.reshape(x.shape[0], 1)  # Reformat as column vector
-            y = ans_set[i, :]
-            y = y.reshape(y.shape[0], 1)  # Reformat as column vector
+            x = inp_set_transpose[:, i:i + 1]
+            y = ans_set_transpose[:, i:i + 1]
             z_hid, a_hid, z_out, y_hat = self.feedforward(x)
-            if round(np.asscalar(y_hat)) == y:
+            #if round(np.asscalar(y_hat)) == y:
+            if y_hat.round() == y:
                 total_correct += 1
 
         return total_correct / total_tested
@@ -103,13 +125,17 @@ inp_set = data[:, 1:]  # input matrix; X
 eta = 0.5
 
 # Creating a neural network object.
-nn = NeuralNetwork(2, 4, 1)
+nn = NeuralNetwork(2, 6, 1)
 
 # Training the neural network.
 nn.train(ans_set, inp_set, 15000, eta)
 
 # Validating the neural network.
 print('Success rate: ', nn.validate(ans_set, inp_set))
+
+# Printing the execution time
+end = time.time()
+print('Execution time: ', end-start)
 
 # Let's compare this to the Keras neural network libraries. We'll learn that and also do validation on our own code at the same time.
 
