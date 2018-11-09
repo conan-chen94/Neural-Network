@@ -40,7 +40,7 @@ class NeuralNetwork:
         for epoch in range(epochs):
 
             print('Epoch number: ', epoch)
-            sum_sq_err = 0
+            total_sum_sq_err = 0
 
             # Looping through the training cases.
             iterations = range(inp_set.shape[0])
@@ -52,7 +52,7 @@ class NeuralNetwork:
 
                 # Feeding forward and calculating sum squared error.
                 z_hid, a_hid, z_out, y_hat = self.feedforward(x)
-                sum_sq_err = sum_sq_err + (y - y_hat) ** 2
+                total_sum_sq_err = total_sum_sq_err + NeuralNetwork.error(y, y_hat)
 
                 # Calculating the output node delta.
                 delta = np.multiply((y - y_hat), NeuralNetwork.sigmoid(z_out, True))  # this is (y-y_hat)*o'(z_out)
@@ -71,11 +71,11 @@ class NeuralNetwork:
                 self.weightsIH = temp_weights_ih
                 self.biasO = temp_bias_o
                 self.biasH = temp_bias_h
-
-            print('Sum Squared Error:', np.asscalar(sum_sq_err))
+            mean_sum_sq_err = total_sum_sq_err/inp_set.shape[0]
+            print('Mean Sum Squared Error:', mean_sum_sq_err)
 
             # If the sum squared error falls below our threshold, quit out.
-            if sum_sq_err < 0.001:
+            if mean_sum_sq_err < 0.001:
                 break
 
     def validate(self, ans_set, inp_set):
@@ -92,8 +92,7 @@ class NeuralNetwork:
             x = inp_set_transpose[:, i:i + 1]
             y = ans_set_transpose[:, i:i + 1]
             z_hid, a_hid, z_out, y_hat = self.feedforward(x)
-            #if round(np.asscalar(y_hat)) == y:
-            if y_hat.round() == y:
+            if np.array_equal(y_hat.round(), y):
                 total_correct += 1
 
         return total_correct / total_tested
@@ -111,6 +110,13 @@ class NeuralNetwork:
             return np.multiply(expit(x), (1 - expit(x)))
         else:
             return expit(x)
+
+    @staticmethod
+    def error(y, y_hat):
+        error = y-y_hat
+        sq_error = error * error
+        sum_sq_error = sq_error.sum()
+        return sum_sq_error
 
 
 # Importing the excel data for the XOR problem. Pandas dataframe.
@@ -131,23 +137,8 @@ nn = NeuralNetwork(2, 6, 1)
 nn.train(ans_set, inp_set, 15000, eta)
 
 # Validating the neural network.
-print('Success rate: ', nn.validate(ans_set, inp_set))
+print('\nSuccess rate: ', nn.validate(ans_set, inp_set))
 
 # Printing the execution time
 end = time.time()
-print('Execution time: ', end-start)
-
-# Let's compare this to the Keras neural network libraries. We'll learn that and also do validation on our own code at the same time.
-
-#model = Sequential([
-#    Dense(2, input_shape=(2,)),
-#    Activation('sigmoid'),
-#    Dense(1),
-#    Activation('sigmoid'),
-#])
-
-#model.compile(loss='mean_squared_error', optimizer='rmsprop')
-#y = data[:, 0]  # first column
-#X = data[:, 1:]
-#model.fit(X, y, batch_size=1, epochs=10000)
-#print(model.predict_proba(X))
+print('Execution time (s): ', end-start)
