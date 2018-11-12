@@ -1,6 +1,15 @@
 # Importing the NeuralNetwork class.
 from neuralNetwork import NeuralNetwork
 
+# Importing the numpy packages so I have access to arrays, matrices, etc.
+import numpy as np
+
+# Importing the pandas package so I can read in excel files.
+import pandas as pd
+
+# Importing time to time execution - https://pythonhow.com/measure-execution-time-python-code/
+import time
+
 # Starting the MNIST timer.
 MNIST_start = time.time()
 
@@ -16,13 +25,13 @@ for i in range(MNIST_train_ans_set_vector.shape[0]):
 MNIST_train_inp_set_temp = MNIST_train[:, 1:] / 255  # input matrix; X
 MNIST_train_inp_set = np.ceil(MNIST_train_inp_set_temp)
 
-eta = 0.5
+eta = 1
 
 # Creating a neural network object.
 MNIST_nn = NeuralNetwork(784, 30, 10)
 
 # Training the neural network.
-MNIST_nn.train(MNIST_train_ans_set, MNIST_train_inp_set, 1, eta, .05)
+MNIST_nn.train(MNIST_train_ans_set, MNIST_train_inp_set, 50, eta, .05)
 
 # Validating the neural network
 MNIST_test_df = pd.read_csv('MNIST_test.csv')

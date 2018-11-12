@@ -1,6 +1,13 @@
 # Importing the NeuralNetwork class.
 from neuralNetwork import NeuralNetwork
 
+# Importing the pandas package so I can read in excel files.
+import pandas as pd
+
+# Importing time to time execution - https://pythonhow.com/measure-execution-time-python-code/
+import time
+
+
 # Starting off the timer
 start = time.time()
 
