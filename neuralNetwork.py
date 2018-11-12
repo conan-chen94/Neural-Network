@@ -2,21 +2,14 @@
 
 # Importing the numpy packages so I have access to arrays, matrices, etc.
 import numpy as np
-# Importing the pandas package so I can read in excel files.
-import pandas as pd
 # Fastest sigmoid function - https://stackoverflow.com/questions/43024745/applying-a-function-along-a-numpy-array
 from scipy.special import expit
-# Importing time to time execution - https://pythonhow.com/measure-execution-time-python-code/
-import time
-
-# Starting off the timer
-start = time.time()
 
 
 # Writing out the Neural Network class
 class NeuralNetwork:
 
-    # Constructor function
+    # Constructor function.
     def __init__(self, num_inputs, num_hidden, num_outputs):
         # Initializing the weights and biases at values within [-0.5,0.5).
         self.weightsIH = np.random.random((num_hidden, num_inputs)) - 0.5
@@ -24,13 +17,8 @@ class NeuralNetwork:
         self.biasH = np.random.random((num_hidden, 1)) - 0.5
         self.biasO = np.random.random((num_outputs, 1)) - 0.5
 
-        # Initializing the weights and biases at zero.
-        # self.weightsIH = np.zeros(shape=(num_hidden, num_inputs))
-        # self.weightsHO = np.zeros(shape=(num_outputs, num_hidden))
-        # self.biasH = np.zeros(shape=(num_hidden, 1))
-        # self.biasO = np.zeros(shape=(num_outputs, 1))
-
-    def train(self, ans_set, inp_set, epochs=5, eta=0.5):
+    # Training function.
+    def train(self, ans_set, inp_set, epochs=5, eta=0.5, threshold=0.001):
 
         # Transposing ans_set (Y) and inp_set (X) so y and x are naturally column vectors while iterating through.
         ans_set_transpose = np.transpose(ans_set)
@@ -75,9 +63,10 @@ class NeuralNetwork:
             print('Mean Sum Squared Error:', mean_sum_sq_err)
 
             # If the sum squared error falls below our threshold, quit out.
-            if mean_sum_sq_err < 0.001:
+            if mean_sum_sq_err < threshold:
                 break
 
+    # Validation function.
     def validate(self, ans_set, inp_set):
 
         total_correct = 0
@@ -97,6 +86,7 @@ class NeuralNetwork:
 
         return total_correct / total_tested
 
+    # Feedforward function.
     def feedforward(self, x):
         z_hid = np.matmul(self.weightsIH, x) + self.biasH
         a_hid = expit(z_hid)
@@ -104,6 +94,7 @@ class NeuralNetwork:
         y_hat = expit(z_out)
         return z_hid, a_hid, z_out, y_hat
 
+    # Static method for the sigmoid function.
     @staticmethod
     def sigmoid(x, derivative=False):
         if derivative:
@@ -111,34 +102,10 @@ class NeuralNetwork:
         else:
             return expit(x)
 
+    # Static method for calculating the sum squared error of a set of outputs.
     @staticmethod
     def error(y, y_hat):
         error = y-y_hat
         sq_error = error * error
         sum_sq_error = sq_error.sum()
         return sum_sq_error
-
-
-# Importing the excel data for the XOR problem. Pandas dataframe.
-df = pd.read_excel('XOR_dataset.xlsx', 'Sheet1')
-
-# Numpy array - https://stackoverflow.com/questions/13187778/convert-pandas-dataframe-to-numpy-array-preserving-index
-data = df.values
-ans_set = data[:, 0:1]  # first column; Y
-inp_set = data[:, 1:]  # input matrix; X
-
-# Defining a learning rate
-eta = 0.5
-
-# Creating a neural network object.
-nn = NeuralNetwork(2, 6, 1)
-
-# Training the neural network.
-nn.train(ans_set, inp_set, 15000, eta)
-
-# Validating the neural network.
-print('\nSuccess rate: ', nn.validate(ans_set, inp_set))
-
-# Printing the execution time
-end = time.time()
-print('Execution time (s): ', end-start)
