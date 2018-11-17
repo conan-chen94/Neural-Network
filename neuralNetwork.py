@@ -27,7 +27,6 @@ class NeuralNetwork:
         # Looping through epochs.
         for epoch in range(epochs):
 
-            print('Epoch number: ', epoch)
             total_sum_sq_err = 0
 
             # Looping through the training cases.
@@ -60,11 +59,15 @@ class NeuralNetwork:
                 self.biasO = temp_bias_o
                 self.biasH = temp_bias_h
             mean_sum_sq_err = total_sum_sq_err/inp_set.shape[0]
-            print('Mean Sum Squared Error:', mean_sum_sq_err)
 
             # If the sum squared error falls below our threshold, quit out.
             if mean_sum_sq_err < threshold:
                 break
+
+            # Printing the statistics for each epoch.
+            print('Epoch number: ', str(epoch+1).ljust(15), end="")
+            print('Mean Sum Squared Error: ', format(mean_sum_sq_err, '.10f').ljust(25), end="")
+            print('Success Rate: ', format(self.validate(ans_set, inp_set), '.10f'))
 
     # Validation function.
     def validate(self, ans_set, inp_set):
@@ -86,7 +89,7 @@ class NeuralNetwork:
 
         return total_correct / total_tested
 
-    # Feedforward function.
+    # Feed forward function.
     def feedforward(self, x):
         z_hid = np.matmul(self.weightsIH, x) + self.biasH
         a_hid = expit(z_hid)

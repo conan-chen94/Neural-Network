@@ -29,8 +29,8 @@ nn = NeuralNetwork(2, 6, 1)
 nn.train(ans_set, inp_set, 15000, eta)
 
 # Validating the neural network.
-print('\nSuccess rate: ', nn.validate(ans_set, inp_set))
+print('\nValidation Success rate: ', nn.validate(ans_set, inp_set))
 
 # Printing the execution time
 end = time.time()
-print('Execution time (s): ', end-start, '\n')
+print('Execution time (s): ', format(end-start, '.10f'))
