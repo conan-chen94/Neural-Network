@@ -24,8 +24,17 @@ class NeuralNetwork:
         ans_set_transpose = np.transpose(ans_set)
         inp_set_transpose = np.transpose(inp_set)
 
+        # Calculating and printing the statistics for the beginning state.
+        y_hat_set = self.feedforward(inp_set_transpose)[3]
+        total_sum_sq_err_set = NeuralNetwork.error(ans_set_transpose, y_hat_set)
+        mean_sum_sq_err = total_sum_sq_err_set.sum()/inp_set.shape[0]
+
+        print('Epoch number: ', str(0).ljust(15), end="")
+        print('Mean Sum Squared Error: ', format(mean_sum_sq_err, '.10f').ljust(25), end="")
+        print('Success Rate: ', format(self.validate(ans_set, inp_set), '.10f'))
+
         # Looping through epochs.
-        for epoch in range(epochs):
+        for epoch in range(1, epochs+1):
 
             total_sum_sq_err = 0
 
@@ -60,14 +69,14 @@ class NeuralNetwork:
                 self.biasH = temp_bias_h
             mean_sum_sq_err = total_sum_sq_err/inp_set.shape[0]
 
+            # Printing the statistics for each epoch.
+            print('Epoch number: ', str(epoch).ljust(15), end="")
+            print('Mean Sum Squared Error: ', format(mean_sum_sq_err, '.10f').ljust(25), end="")
+            print('Success Rate: ', format(self.validate(ans_set, inp_set), '.10f'))
+
             # If the sum squared error falls below our threshold, quit out.
             if mean_sum_sq_err < threshold:
                 break
-
-            # Printing the statistics for each epoch.
-            print('Epoch number: ', str(epoch+1).ljust(15), end="")
-            print('Mean Sum Squared Error: ', format(mean_sum_sq_err, '.10f').ljust(25), end="")
-            print('Success Rate: ', format(self.validate(ans_set, inp_set), '.10f'))
 
     # Validation function.
     def validate(self, ans_set, inp_set):
@@ -80,11 +89,15 @@ class NeuralNetwork:
         ans_set_transpose = np.transpose(ans_set)
         inp_set_transpose = np.transpose(inp_set)
 
+        # Generating the predictions.
+        y_hat_set = self.feedforward(inp_set_transpose)[3]
+        y_hat_set_round = y_hat_set.round()
+
+        # Counting the correct predictions.
         for i in iterations:
-            x = inp_set_transpose[:, i:i + 1]
-            y = ans_set_transpose[:, i:i + 1]
-            z_hid, a_hid, z_out, y_hat = self.feedforward(x)
-            if np.array_equal(y_hat.round(), y):
+            y = ans_set_transpose[:, i:i+1]
+            y_hat = y_hat_set_round[:, i:i+1]
+            if np.array_equal(y_hat, y):
                 total_correct += 1
 
         return total_correct / total_tested
